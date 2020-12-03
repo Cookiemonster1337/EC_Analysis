@@ -1,0 +1,8 @@
+,0,1,2,3
+0,File.......:,protonly_1m_500ma,-,"NOV,27.2020"
+1,System.....:,f1850_ref_5m_1a,,
+2,Potential..:,-0.324V,,
+3,Current....:,-19.915mA,,
+4,Temperature:,-2.8,+-0.0,C
+5,Time.......:,14:33:06,-,14:45:51
+6,Comment....:,,,
