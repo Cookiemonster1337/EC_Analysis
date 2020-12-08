@@ -10,9 +10,8 @@ def get_file(frame):
     eis_filename = \
         tk.filedialog.askopenfilename(initialdir="W:\Projekte\Graphenblocker_61905\04_Bearbeitung\Elektrochemische Analyse\Daten",
                                       title="Select file",
-                                      filetypes=(
-                                                 ("all files", "*.*"),
-                                                 ("Text files", "*.txt")))
+                                      filetypes=(("Text files", "*.txt"),
+                                                 ("all files", "*.*")))
 
     import_eis_data(frame, eis_filename)
 
