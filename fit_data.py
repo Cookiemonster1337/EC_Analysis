@@ -19,7 +19,7 @@ def get_qms_file(frame):
     qms_filename = \
         tk.filedialog.askopenfilename(initialdir="W:\Projekte\Graphenblocker_61905\04_Bearbeitung\Elektrochemische Analyse\Daten",
                                       title="Select file",
-                                      filetypes=(("Text files", "*.txt"),
+                                      filetypes=(("Text files", "*.dat"),
                                                  ("all files", "*.*")))
 
     import_qms_data(frame, qms_filename)
