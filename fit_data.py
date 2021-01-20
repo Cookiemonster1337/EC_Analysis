@@ -60,3 +60,4 @@ menu_frame_button1.grid(padx=(100, 100), pady=10, row=0, column=0, sticky='nesw'
 menu_frame_button2.grid(padx=(100, 100), pady=10, row=1, column=0, sticky='nesw')
 
 menu_frame.mainloop()
+

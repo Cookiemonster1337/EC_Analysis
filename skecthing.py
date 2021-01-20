@@ -1,23 +1,42 @@
-import pandas as pd
-from datetime import datetime
-
-file = 'C:/Users/Julian/Desktop/Homeoffice_20201201/20201127_dmfc_protonly/MSR/20201106_dmfc_cathode.dat'
-
-df_qms_specs = pd.read_csv(file, decimal=',', encoding='cp1252', error_bad_lines=False, delim_whitespace=True,
-                               index_col=False, header=None, skiprows=2, nrows=5, keep_default_na=False)
+import tkinter as tk
+from tkinter import Frame
 
 
-# qms_filename = df_qms_specs[5].values[0].split('\\')[-1][:-1]
-# print(qms_filename)
 
-qms_filename = file.split('/')[-1][:-4]
-qms_specs_date = df_qms_specs[12].values[0]
-qms_specs_time = df_qms_specs[13].values[0]
 
-qms_specs_datetime = datetime.strptime(qms_specs_date + ' ' + qms_specs_time, '%Y-0%m-%d %H\'%M\'%S.isi')
+frame_1 = tk.Tk()
 
-    # read and format measurement data !fix with load, save, reload, columns --> to get into aspired design
-df_qms_data = pd.read_csv(file, sep='\t', decimal='.', encoding='cp1252', error_bad_lines=False, skiprows=7,
-                              index_col=False)
+frame_1.title("FRAME I")
+frame_1.geometry("{}x{}".format(500, 350))
+frame_1.maxsize(500, 350)
+
+top_menu_frame = Frame(main_menu_frame, bg='blue', width=500, height=350)
+top_menu_frame.grid_propagate(0)
+
+bot_menu_frame = Frame(main_menu_frame, bg='green', width=500, height=50)
+bot_menu_frame.grid_propagate(0)
+
+top_menu_frame.grid(row=0)
+bot_menu_frame.grid(row=1)
+
+
+frame1_button = tk.Button(frame_1, text='Data Import',
+                               width=40, command=)
+
+frame_1.mainloop()
+
+
+# frame_2 = tk.Tk()
+#
+# frame_2.title("FRAME II")
+# frame_2.geometry("{}x{}".format(500, 350))
+# frame_2.maxsize(500, 350)
+#
+# frame_2.mainloop()
+
+
+
+
+
 
 

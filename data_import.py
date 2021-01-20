@@ -10,6 +10,7 @@ import scipy.optimize as optimize
 from scipy.optimize import fsolve, root
 import pathlib
 
+
 def read_eis_data(file):
     # read out file data (experiement specs)
     # readout file data
@@ -157,11 +158,17 @@ def save_eis_data(df_eis, filename, frame, name, molarity, current, voltage):
     plt.show()
 
 
-def save_qms_data(df_qms, filename, frame, name, molarity, current, voltage):
+def save_qms_data(df_qms, filename, frame, name, temperature, molarity, current, bool_dmfc, bool_dmec):
+
 
     df_qms['Sample'] = name
+    if bool_dmfc == 'DMFC':
+        df_qms['System'] = 'DMFC'
+    else:
+        df_qms['System'] = 'DMEC'
+    df_qms['Temperature'] = temperature
     df_qms['MeOH Molarity [M]'] = molarity
-    df_qms['Current [mA]'] = current*1000
+    df_qms['Current [mA]'] = current
     #df_qms.round(4)
 
     # save eis data to csv
@@ -197,7 +204,7 @@ def save_qms_data(df_qms, filename, frame, name, molarity, current, voltage):
     plt.plot(x_values, y_values_ch3oh, 'y-', label='MeOH')
     plt.xlim(0, 600)
     plt.yscale('log')
-    plt.title('Preview - QMS (' + name + ' / ' + str(current) + 'mA / ' + molarity + 'M)', fontsize=16, pad=20)
+    plt.title('Preview - QMS (' + name + ' / ' + str(current) + 'mA / ' + molarity + 'M / ' + temperature + '°C)', fontsize=16, pad=20)
     plt.xlabel('time [s]')
     plt.ylabel('fraction [%]')
     plt.legend(loc='upper left')
@@ -283,7 +290,16 @@ def import_eis_data(frame, file):
     sdf_label5 = tk.Label(top_sampledoc_frame, text='Voltage [V]:', pady=10,
                           bg='lightgrey')
 
-    #sdf_label6 = tk.Label(top_right_sampledoc_frame, justify='left', text=df_eis_specs)
+    CheckVar1 = IntVar()
+    CheckVar2 = IntVar()
+
+    sdf_cb1 = tk.Checkbutton(top_sampledoc_frame, text="DMFC", variable=CheckVar1,
+                     onvalue=1, offvalue=0, height=5, width=20)
+
+    sdf_cb2 = tk.Checkbutton(top_sampledoc_frame, text="DMEC", variable=CheckVar2,
+                     onvalue=1, offvalue=0, height=5, width=20)
+
+
 
     sdf_label7 = tk.Label(bot_sampledoc_frame, text='File:   ' + '\t' + eis_file,
                           pady=10, bg='grey')
@@ -294,14 +310,16 @@ def import_eis_data(frame, file):
     # label placement
     sdf_label1.grid(row=1, column=0, sticky='w', padx=(10, 10))
     sdf_label2.grid(row=2, column=0, sticky='w', padx=(10, 10))
-    sdf_label3.grid(row=3, column=0, sticky='w', padx=(10, 10))
-    sdf_label4.grid(row=4, column=0, sticky='w', padx=(10, 10))
-    sdf_label5.grid(row=5, column=0, sticky='w', padx=(10, 10))
-
-    #sdf_label6.grid(row=1, column=0, sticky='e')
+    sdf_label3.grid(row=4, column=0, sticky='w', padx=(10, 10))
+    sdf_label4.grid(row=5, column=0, sticky='w', padx=(10, 10))
+    sdf_label5.grid(row=6, column=0, sticky='w', padx=(10, 10))
 
     sdf_label7.grid(row=0, column=0, sticky='w', padx=(10, 0))
     sdf_label8.grid(row=1, column=0, sticky='w', padx=(10, 0))
+
+    # cb placement
+    sdf_cb1.grid(row=3, column=0, sticky='w', padx=(10, 10))
+    sdf_cb2.grid(row=3, column=0, sticky='w', padx=(10, 10))
 
     # entries for additonal documentation
 
@@ -364,20 +382,37 @@ def import_qms_data(frame, file):
         # labels (date, sample ,molarity, current, voltage)
     sdf_label1 = tk.Label(top_sampledoc_frame, text='Date:', pady=10, bg='lightgrey')
     sdf_label2 = tk.Label(top_sampledoc_frame, text='Sample:', pady=10, bg='lightgrey')
-    sdf_label3 = tk.Label(top_sampledoc_frame, text='Molarity [M]:', pady=10, bg='lightgrey')
-    sdf_label4 = tk.Label(top_sampledoc_frame, text='Current [A]:', pady=10, bg='lightgrey')
-    sdf_label5 = tk.Label(top_sampledoc_frame, text='Voltage [V]:', pady=10, bg='lightgrey')
+    sdf_label3 = tk.Label(top_sampledoc_frame, text='Temperature [°C]:', pady=10, bg='lightgrey')
+    sdf_label4 = tk.Label(top_sampledoc_frame, text='Molarity [M]:', pady=10, bg='lightgrey')
+    sdf_label5 = tk.Label(top_sampledoc_frame, text='Current [mA]:', pady=10, bg='lightgrey')
 
     sdf_label7 = tk.Label(bot_sampledoc_frame, text='File: ' + qms_file, pady=10, bg='grey')
+
+    # checkbuttons
+    # checkbutton_choices (dmfc, dmec)
+    cb1_var ='1'
+    cb2_var = '2'
+
+    sdf_cb1 = tk.Checkbutton(top_sampledoc_frame, text="DMFC",
+                             variable=cb1_var,
+                             onvalue='DMFC', offvalue=0)
+
+    sdf_cb2 = tk.Checkbutton(top_sampledoc_frame, text="DMEC",
+                             variable=cb2_var,
+                             onvalue='DMEC', offvalue=0)
 
         # label placement
     sdf_label1.grid(row=1, column=0, sticky='ew', padx=(10, 10))
     sdf_label2.grid(row=2, column=0, sticky='ew', padx=(10, 10))
-    sdf_label3.grid(row=3, column=0, sticky='ew', padx=(10, 10))
-    sdf_label4.grid(row=4, column=0, sticky='ew', padx=(10, 10))
-    sdf_label5.grid(row=5, column=0, sticky='ew')
+    sdf_label3.grid(row=4, column=0, sticky='ew', padx=(10, 10))
+    sdf_label4.grid(row=5, column=0, sticky='ew', padx=(10, 10))
+    sdf_label5.grid(row=6, column=0, sticky='ew')
 
     sdf_label7.grid(row=0, column=0, sticky='ew', padx=(10, 0))
+
+    # cb placement
+    sdf_cb1.grid(row=3, column=0, sticky='w', padx=(10, 10))
+    sdf_cb2.grid(row=3, column=1, sticky='w', padx=(10, 10))
 
     # entries for additonal documentation
 
@@ -396,16 +431,22 @@ def import_qms_data(frame, file):
         # entry placement
     sdf_entry1.grid(row=1, column=1)
     sdf_entry2.grid(row=2, column=1)
-    sdf_entry3.grid(row=3, column=1)
-    sdf_entry4.grid(row=4, column=1)
-    sdf_entry5.grid(row=5, column=1)
+    sdf_entry3.grid(row=4, column=1)
+    sdf_entry4.grid(row=5, column=1)
+    sdf_entry5.grid(row=6, column=1)
 
     # buttons of sampledoc_frame
         # sdf_button1 --> format file and store with given additional data
     sdf_button1 = tk.Button(top_sampledoc_frame, text='OK', width=20, bd=5,
-                            command=lambda: save_qms_data(df_qms, qms_file, sampledoc_frame, sdf_entry2.get(),
-                            sdf_entry3.get(), sdf_entry4.get(), sdf_entry5.get()))
-    sdf_button1.grid(row=6, column=1)
+                            command=lambda: save_qms_data(df_qms, qms_file,
+                                                          sampledoc_frame,
+                                                          sdf_entry2.get(),
+                                                          sdf_entry3.get(),
+                                                          sdf_entry4.get(),
+                                                          sdf_entry5.get(),
+                                                          sdf_cb1.getvar(cb1_var),
+                                                          sdf_cb2.getvar(cb2_var)))
+    sdf_button1.grid(row=7, column=1)
 
 
     sampledoc_frame.mainloop()
