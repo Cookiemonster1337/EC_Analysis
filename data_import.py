@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 import scipy.optimize as optimize
 from scipy.optimize import fsolve, root
 import pathlib
+import os
 
 
 def read_eis_data(file):
@@ -70,16 +71,23 @@ def read_qms_data(file):
     return df_qms_data, df_qms_specs, qms_specs_datetime, qms_filename
 
 
-def save_eis_data(df_eis, filename, frame, name, molarity, current, voltage):
+def save_eis_data(df_eis, filename, frame, name, temperature, molarity, current, bool_dmfc, bool_dmec, voltage):
 
+    if bool_dmfc == 'DMFC':
+        df_eis['System'] = 'DMFC'
+        system = 'DMFC'
+    else:
+        df_eis['System'] = 'DMEC'
+        system = 'DMEC'
     df_eis['Sample'] = name
+    df_eis['Temperature [°C]'] = temperature
     df_eis['MeOH Molarity [M]'] = molarity
-    df_eis['Current [mA]'] = current*1000
+    df_eis['Current [mA]'] = current
+    df_eis['Voltage [V]'] = current
     df_eis.round(4)
 
     # save eis data to csv
     rootpath = pathlib.Path(__file__).parent.absolute()
-    print(rootpath)
     df_eis.to_csv(str(rootpath)+'/EIS_data/CSV_data/'+filename+'.csv', mode='w', header=True,
                   index=False, sep='\t')
 
@@ -107,11 +115,12 @@ def save_eis_data(df_eis, filename, frame, name, molarity, current, voltage):
     hfr = roots[0]
     rr = roots[1] - roots[0]
 
-    current = int(current) * 1000
+    current = int(current)
 
+    plt.figure(figsize=(24, 13.5))
     plt.plot(x_values, y_values, 'rs--')
     plt.plot(x_values, f(x_values), 'k-')
-    plt.title('Preview - Nyquistplot (' + name + ' / ' + str(current) + 'mA / ' + molarity + 'M)', fontsize=16, pad=20)
+    plt.title('Nyquistplot (' + system + ' - ' + name+ ')', fontsize=16, pad=20)
     plt.xlabel('Re [Ohm*cm²]')
     plt.ylabel('-Im [Ohm*cm²]')
     plt.xticks()
@@ -136,9 +145,9 @@ def save_eis_data(df_eis, filename, frame, name, molarity, current, voltage):
     res_table.set_fontsize(12)
 
 
-    v_table_data = [['Cell Voltage [V]', str(voltage)[1:]]]
+    v_table_data = [['Voltage [V]', voltage], ['Temperature [°C]', temperature], ['Molarity [M]', molarity], ['Current [mA]', current]]
     v_table = plt.table(cellText=v_table_data,
-                        bbox=[0.9, 0.95, 0.1, 0.05], colWidths=[.6, .4], cellLoc='right', edges='open')
+                        bbox=[0.9, 0.8, 0.1, 0.2], colWidths=[.6, .4], cellLoc='right', edges='open')
 
     for (row, col), cell in v_table.get_celld().items():
         if col == 0:
@@ -154,7 +163,8 @@ def save_eis_data(df_eis, filename, frame, name, molarity, current, voltage):
     v_table.set_fontsize(12)
 
 
-
+    graph_name = str(name) + '_' + str(temperature) + '_' + str(molarity) + '_' + str(current)
+    plt.savefig(str(rootpath) + '/EIS_data/PNG_data/' + graph_name + '.png', bbox_inches='tight')
     plt.show()
 
 
@@ -283,21 +293,23 @@ def import_eis_data(frame, file):
                           bg='lightgrey')
     sdf_label2 = tk.Label(top_sampledoc_frame, text='Sample:', pady=10,
                           bg='lightgrey')
-    sdf_label3 = tk.Label(top_sampledoc_frame, text='Molarity [M]:', pady=10,
+    sdf_label3 = tk.Label(top_sampledoc_frame, text='Temperature [°C]:', pady=10,
                           bg='lightgrey')
-    sdf_label4 = tk.Label(top_sampledoc_frame, text='Current [A]:', pady=10,
+    sdf_label4 = tk.Label(top_sampledoc_frame, text='Molarity [M]:', pady=10,
                           bg='lightgrey')
-    sdf_label5 = tk.Label(top_sampledoc_frame, text='Voltage [V]:', pady=10,
+    sdf_label5 = tk.Label(top_sampledoc_frame, text='Current [mA]:', pady=10,
                           bg='lightgrey')
 
-    CheckVar1 = IntVar()
-    CheckVar2 = IntVar()
+    cb1_var = '1'
+    cb2_var = '2'
 
-    sdf_cb1 = tk.Checkbutton(top_sampledoc_frame, text="DMFC", variable=CheckVar1,
-                     onvalue=1, offvalue=0, height=5, width=20)
+    sdf_cb1 = tk.Checkbutton(top_sampledoc_frame, text="DMFC",
+                             variable=cb1_var,
+                             onvalue='DMFC', offvalue=0)
 
-    sdf_cb2 = tk.Checkbutton(top_sampledoc_frame, text="DMEC", variable=CheckVar2,
-                     onvalue=1, offvalue=0, height=5, width=20)
+    sdf_cb2 = tk.Checkbutton(top_sampledoc_frame, text="DMEC",
+                             variable=cb2_var,
+                             onvalue='DMEC', offvalue=0)
 
 
 
@@ -319,7 +331,7 @@ def import_eis_data(frame, file):
 
     # cb placement
     sdf_cb1.grid(row=3, column=0, sticky='w', padx=(10, 10))
-    sdf_cb2.grid(row=3, column=0, sticky='w', padx=(10, 10))
+    sdf_cb2.grid(row=3, column=1, sticky='w', padx=(10, 10))
 
     # entries for additonal documentation
 
@@ -327,20 +339,20 @@ def import_eis_data(frame, file):
     sdf_entry1 = tk.Entry(top_sampledoc_frame, width=30, bd=5)
     sdf_entry1.insert(0, eis_datetime)
     sdf_entry2 = tk.Entry(top_sampledoc_frame, width=30, bd=5)
-    sdf_entry2.insert(0, 'xxxx')
+    sdf_entry2.insert(0, 'N115-A2mg-K2mg-Ref')
     sdf_entry3 = tk.Entry(top_sampledoc_frame, width=30, bd=5)
     sdf_entry3.insert(0, '0')
     sdf_entry4 = tk.Entry(top_sampledoc_frame, width=30, bd=5)
     sdf_entry4.insert(0, '0')
     sdf_entry5 = tk.Entry(top_sampledoc_frame, width=30, bd=5)
-    sdf_entry5.insert(0, eis_voltage)
+    sdf_entry5.insert(0, '0')
 
     # entry placement
     sdf_entry1.grid(row=1, column=1)
     sdf_entry2.grid(row=2, column=1)
-    sdf_entry3.grid(row=3, column=1)
-    sdf_entry4.grid(row=4, column=1)
-    sdf_entry5.grid(row=5, column=1)
+    sdf_entry3.grid(row=4, column=1)
+    sdf_entry4.grid(row=5, column=1)
+    sdf_entry5.grid(row=6, column=1)
 
     # buttons of sampledoc_frame
         # sdf_button1 --> format file and store with given additional data
@@ -350,8 +362,11 @@ def import_eis_data(frame, file):
                                                           sdf_entry2.get(),
                                                           sdf_entry3.get(),
                                                           sdf_entry4.get(),
-                                                          sdf_entry5.get()))
-    sdf_button1.grid(row=6, column=1)
+                                                          sdf_entry5.get(),
+                                                          sdf_cb1.getvar(cb1_var),
+                                                          sdf_cb2.getvar(cb2_var),
+                                                          eis_voltage))
+    sdf_button1.grid(row=7, column=1)
 
 
     sampledoc_frame.mainloop()
@@ -450,6 +465,7 @@ def import_qms_data(frame, file):
 
 
     sampledoc_frame.mainloop()
+
 
 
 
